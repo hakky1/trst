@@ -3,17 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self'; 
-        script-src 'self' 'unsafe-inline'; 
-        style-src 'self' 'unsafe-inline'; 
-        img-src 'self' https://www.google.com data:; 
-        connect-src 'self' https://www.google.com https://connectivitycheck.gstatic.com;
-        font-src 'self';
-        object-src 'none';
-        frame-ancestors 'none';
-    ">
-    <title>أداة قياس سرعة الإنترنت</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://www.google.com data:; connect-src 'self' https://www.google.com https://httpbin.org; font-src 'self'; object-src 'none'; frame-ancestors 'none';">
+    <title>أداة قياس سرعة الإنترنت المحسّنة</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #000000; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; color: #ffffff; }
@@ -49,12 +40,9 @@
         .ig-button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: #000000; color: #ffffff; text-decoration: none; padding: 12px 25px; border-radius: 25px; border: 2px solid #ffffff; font-weight: bold; font-size: 15px; transition: all 0.3s ease; }
         .ig-button:hover { background: #ffffff; color: #000000; transform: scale(1.05); }
         .ig-button svg { width: 20px; height: 20px; fill: currentColor; }
-        @media (max-width: 600px) {
-            .container { padding: 20px; }
-            .header h1 { font-size: 24px; }
-            .speed-display { grid-template-columns: 1fr; }
-            .button-group { flex-direction: column; }
-        }
+        .footer-links a { color: #888; text-decoration: none; margin: 0 10px; }
+        .footer-links a:hover { text-decoration: underline; }
+        @media (max-width: 600px) { .container { padding: 20px; } .header h1 { font-size: 24px; } .speed-display { grid-template-columns: 1fr; } .button-group { flex-direction: column; } }
     </style>
 </head>
 <body>
@@ -64,27 +52,13 @@
             <p>اختبر سرعة الإنترنت لديك بدقة عالية</p>
         </div>
         <div class="speed-display">
-            <div class="speed-item">
-                <div class="speed-label">سرعة التحميل</div>
-                <div class="speed-value" id="downloadSpeed">--</div>
-                <div class="speed-unit">Mbps</div>
-            </div>
-            <div class="speed-item">
-                <div class="speed-label">سرعة الرفع</div>
-                <div class="speed-value" id="uploadSpeed">--</div>
-                <div class="speed-unit">Mbps</div>
-            </div>
-            <div class="speed-item">
-                <div class="speed-label">زمن الاستجابة</div>
-                <div class="speed-value" id="ping">--</div>
-                <div class="speed-unit">ms</div>
-            </div>
+            <div class="speed-item"><div class="speed-label">سرعة التحميل</div><div class="speed-value" id="downloadSpeed">--</div><div class="speed-unit">Mbps</div></div>
+            <div class="speed-item"><div class="speed-label">سرعة الرفع</div><div class="speed-value" id="uploadSpeed">--</div><div class="speed-unit">Mbps</div></div>
+            <div class="speed-item"><div class="speed-label">زمن الاستجابة</div><div class="speed-value" id="ping">--</div><div class="speed-unit">ms</div></div>
         </div>
         <div class="status" id="status">جاهز للاختبار</div>
         <div class="progress-section" id="progressSection" style="display: none;">
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
             <div class="progress-text" id="progressText">0%</div>
         </div>
         <div class="button-group">
@@ -93,11 +67,7 @@
         </div>
         <div class="info-section">
             <h3>ℹ️ معلومات مهمة:</h3>
-            <p>
-                • سرعة التحميل (Download): تقيس سرعة استقبال البيانات<br>
-                • سرعة الرفع (Upload): تقيس سرعة إرسال البيانات<br>
-                • زمن الاستجابة (Ping): يقيس تأخير الاتصال<br>
-            </p>
+            <p>• سرعة التحميل (Download): تقيس سرعة استقبال البيانات من الإنترنت<br>• سرعة الرفع (Upload): تقيس سرعة إرسال البيانات إلى الإنترنت<br>• زمن الاستجابة (Ping): يقيس تأخير الاتصال بالملي ثانية<br>• قد يستغرق الاختبار 30-60 ثانية</p>
         </div>
         <div class="creator-section">
             <div class="creator-text">تم إنشاء وتطوير الأداة بواسطة:</div>
@@ -105,74 +75,91 @@
                 <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
                 تابعني على إنستغرام
             </a>
+            <!-- ▼▼▼ هذا هو الرابط الجديد الذي تمت إضافته ▼▼▼ -->
+            <div class="footer-links" style="margin-top: 25px; font-size: 14px;">
+                <a href="privacy.html" target="_blank">سياسة الخصوصية</a>
+            </div>
         </div>
     </div>
     <script>
-    let isTestRunning = false;
-    const startBtn = document.getElementById('startBtn');
-    const progressSection = document.getElementById('progressSection');
-    const statusEl = document.getElementById('status');
-    const progressFill = document.getElementById('progressFill');
-    const progressText = document.getElementById('progressText');
-
-    async function startTest() {
-        if (isTestRunning) return;
-        isTestRunning = true;
-        resetTest();
-        startBtn.disabled = true;
-        progressSection.style.display = 'block';
-        statusEl.className = 'status testing';
-        statusEl.textContent = '⏳ جاري الاختبار...';
-        try {
-            updateProgress(10, 'قياس الاستجابة...');
-            await testPing();
-            updateProgress(40, 'قياس التحميل...');
-            await testDownloadSpeed();
-            updateProgress(70, 'قياس الرفع...');
-            await testUploadSpeed();
-            updateProgress(100, 'اكتمل.');
-            statusEl.className = 'status complete';
-            statusEl.textContent = '✅ اكتمل بنجاح';
-        } catch (error) {
-            statusEl.className = 'status error';
-            statusEl.textContent = `❌ فشل الاتصال`;
-        } finally {
+        let isTestRunning = false;
+        const startBtn = document.getElementById('startBtn');
+        const progressSection = document.getElementById('progressSection');
+        const statusEl = document.getElementById('status');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        async function startTest() {
+            if (isTestRunning) return;
+            isTestRunning = true;
+            resetTest();
+            startBtn.disabled = true;
+            progressSection.style.display = 'block';
+            statusEl.className = 'status testing';
+            statusEl.textContent = '⏳ جاري الاختبار...';
+            try {
+                await testPing();
+                updateProgress(33, 'جاري قياس سرعة التحميل...');
+                await testDownloadSpeed();
+                updateProgress(66, 'جاري قياس سرعة الرفع...');
+                await testUploadSpeed();
+                updateProgress(100, 'اكتمل الاختبار.');
+                statusEl.className = 'status complete';
+                statusEl.textContent = '✅ اكتمل الاختبار بنجاح';
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.textContent = `❌ فشل الاختبار: ${error.message}`;
+                console.error('Test error:', error);
+            } finally {
+                isTestRunning = false;
+                startBtn.disabled = false;
+                setTimeout(() => { if (!isTestRunning) { progressSection.style.display = 'none'; } }, 2000);
+            }
+        }
+        async function testPing() {
+            const startTime = performance.now();
+            await fetch('https://www.google.com/favicon.ico?_=' + new Date().getTime(), { method: 'HEAD', mode: 'no-cors', cache: 'no-store' });
+            const endTime = performance.now();
+            document.getElementById('ping').textContent = Math.round(endTime - startTime);
+        }
+        async function testDownloadSpeed() {
+            const fileUrl = 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png?_=' + new Date().getTime();
+            const startTime = performance.now();
+            const response = await fetch(fileUrl, { cache: 'no-store' });
+            if (!response.ok) { throw new Error('فشل الاتصال بخادم التحميل.'); }
+            const blob = await response.blob();
+            const endTime = performance.now();
+            const durationInSeconds = (endTime - startTime) / 1000;
+            if (durationInSeconds < 0.1) { throw new Error('مدة اختبار التحميل قصيرة جداً.'); }
+            const speedInMbps = (blob.size / (1024 * 1024) / durationInSeconds) * 8;
+            document.getElementById('downloadSpeed').textContent = speedInMbps.toFixed(2);
+        }
+        async function testUploadSpeed() {
+            const testData = new Blob([new ArrayBuffer(1024 * 1024)], { type: 'application/octet-stream' });
+            const formData = new FormData();
+            formData.append('file', testData);
+            const startTime = performance.now();
+            const response = await fetch('https://httpbin.org/post', { method: 'POST', body: formData });
+            if (!response.ok) { throw new Error('فشل الاتصال بخادم الرفع.'); }
+            const endTime = performance.now();
+            const durationInSeconds = (endTime - startTime) / 1000;
+            const speedInMbps = (testData.size / (1024 * 1024) / durationInSeconds) * 8;
+            document.getElementById('uploadSpeed').textContent = speedInMbps.toFixed(2);
+        }
+        function updateProgress(percent, text) {
+            progressFill.style.width = percent + '%';
+            progressText.textContent = text || (Math.round(percent) + '%');
+        }
+        function resetTest() {
+            document.getElementById('downloadSpeed').textContent = '--';
+            document.getElementById('uploadSpeed').textContent = '--';
+            document.getElementById('ping').textContent = '--';
+            statusEl.className = 'status';
+            statusEl.textContent = 'جاهز للاختبار';
+            updateProgress(0, '0%');
+            progressSection.style.display = 'none';
             isTestRunning = false;
             startBtn.disabled = false;
         }
-    }
-
-    async function testPing() {
-        const start = performance.now();
-        try {
-            await fetch('https://connectivitycheck.gstatic.com/generate_204', { mode: 'no-cors', cache: 'no-store' });
-            document.getElementById('ping').textContent = Math.round(performance.now() - start);
-        } catch { document.getElementById('ping').textContent = "??"; }
-    }
-
-    async function testDownloadSpeed() {
-        const start = performance.now();
-        await fetch('https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png?_=' + Date.now(), { mode: 'no-cors', cache: 'no-store' });
-        const duration = (performance.now() - start) / 1000;
-        const speed = ( (13000 * 8) / duration ) / (1024 * 1024);
-        document.getElementById('downloadSpeed').textContent = (speed * 15).toFixed(2);
-    }
-
-    async function testUploadSpeed() {
-        const dl = parseFloat(document.getElementById('downloadSpeed').textContent) || 5;
-        await new Promise(r => setTimeout(r, 1000));
-        document.getElementById('uploadSpeed').textContent = (dl * 0.35).toFixed(2);
-    }
-
-    function updateProgress(p, t) { progressFill.style.width = p + '%'; progressText.textContent = t; }
-    function resetTest() {
-        document.getElementById('downloadSpeed').textContent = '--';
-        document.getElementById('uploadSpeed').textContent = '--';
-        document.getElementById('ping').textContent = '--';
-        statusEl.className = 'status';
-        statusEl.textContent = 'جاهز';
-        updateProgress(0, '0%');
-    }
     </script>
 </body>
 </html>
