@@ -1,0 +1,339 @@
+
+import os
+import re
+import bcrypt
+from functools import wraps
+from datetime import datetime, timedelta
+from urllib.parse import urlparse
+
+# ==============================================================================
+# 1. إعدادات الأمان الأساسية
+# ==============================================================================
+
+class SecurityConfig:
+    # مفتاح سري قوي يستخدم لتشفير الجلسات ورموز CSRF. يجب أن يكون سرياً للغاية.
+    SECRET_KEY = os.environ.get('APP_SECRET_KEY', os.urandom(32))
+
+    # إعدادات ملفات تعريف الارتباط (Cookies) للجلسات
+    SESSION_COOKIE_SECURE = True  # إرسال الكوكيز عبر HTTPS فقط
+    SESSION_COOKIE_HTTPONLY = True  # منع الوصول للكوكيز عبر JavaScript
+    SESSION_COOKIE_SAMESITE = 'Lax' # حماية من CSRF جزئياً (Strict أو Lax)
+    SESSION_LIFETIME_DAYS = 7     # مدة صلاحية الجلسة بالأيام
+
+    # إعدادات CSRF
+    CSRF_TOKEN_LIFETIME_SECONDS = 3600 # صلاحية رمز CSRF ساعة واحدة
+
+    # إعدادات سياسة أمان المحتوى (CSP)
+    # تحدد المصادر الموثوقة للمحتوى. يجب تخصيصها لتطبيقك.
+    CSP_POLICY = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " # السماح بالسكريبتات من نفس المصدر و CDN
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "  # السماح بالأنماط من نفس المصدر و CDN
+        "img-src 'self' data: https://www.google.com; " # السماح بالصور من نفس المصدر و Google
+        "font-src 'self'; "
+        "connect-src 'self' https://httpbin.org;" # السماح بطلبات Fetch/XHR
+    )
+
+    # قائمة بالعناوين المسموح بها لـ CORS (Cross-Origin Resource Sharing)
+    # يجب تحديدها بدقة في بيئة الإنتاج
+    CORS_ALLOWED_ORIGINS = ['http://localhost:3000', 'https://yourdomain.com']
+
+# ==============================================================================
+# 2. وظائف مساعدة للأمان
+# ==============================================================================
+
+class SecurityUtils:
+
+    @staticmethod
+    def hash_password(password: str) -> str:
+        """ تجزئة كلمة المرور باستخدام bcrypt """
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        return hashed_password.decode('utf-8')
+
+    @staticmethod
+    def check_password(password: str, hashed_password: str) -> bool:
+        """ التحقق من كلمة المرور مقابل التجزئة المخزنة """
+        try:
+            return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
+        except ValueError: # قد يحدث إذا كانت التجزئة غير صالحة
+            return False
+
+    @staticmethod
+    def generate_csrf_token() -> str:
+        """ توليد رمز CSRF آمن """
+        return os.urandom(16).hex()
+
+    @staticmethod
+    def validate_csrf_token(session_token: str, request_token: str) -> bool:
+        """ التحقق من صحة رمز CSRF """
+        return session_token == request_token
+
+    @staticmethod
+    def sanitize_html(html_content: str) -> str:
+        """ تعقيم محتوى HTML لمنع XSS (مثال بسيط، استخدم مكتبة مثل Bleach في الإنتاج) """
+        # إزالة علامات <script> وأي سمات on* (مثل onclick)
+        clean_content = re.sub(r'<script.*?>.*?</script>', '', html_content, flags=re.IGNORECASE | re.DOTALL)
+        clean_content = re.sub(r' on[a-zA-Z]+=".*?"', '', clean_content, flags=re.IGNORECASE)
+        # يمكن إضافة المزيد من قواعد التعقيم هنا
+        return clean_content
+
+    @staticmethod
+    def validate_email(email: str) -> bool:
+        """ التحقق من صحة تنسيق البريد الإلكتروني """
+        return re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email) is not None
+
+    @staticmethod
+    def validate_url(url: str) -> bool:
+        """ التحقق من صحة تنسيق URL """
+        try:
+            result = urlparse(url)
+            return all([result.scheme, result.netloc])
+        except ValueError:
+            return False
+
+# ==============================================================================
+# 3. محرك الأمان (Security Engine) - Middleware أو Decorators
+# ==============================================================================
+
+class SecurityEngine:
+    def __init__(self, app=None):
+        self.app = app
+        if app is not None:
+            self.init_app(app)
+
+    def init_app(self, app):
+        app.config.from_object(SecurityConfig)
+        app.before_request(self._before_request_hook)
+        app.after_request(self._after_request_hook)
+
+    def _before_request_hook(self):
+        """ يتم تشغيله قبل كل طلب HTTP """
+        # مثال: التحقق من CSRF للطلبات التي تغير الحالة (POST, PUT, DELETE)
+        if request.method in ['POST', 'PUT', 'DELETE']:
+            if not self._validate_csrf_for_request():
+                abort(403, description="CSRF token missing or invalid")
+
+    def _after_request_hook(self, response):
+        """ يتم تشغيله بعد كل طلب HTTP """
+        self._add_security_headers(response)
+        self._handle_cors_headers(response)
+        return response
+
+    def _validate_csrf_for_request(self):
+        """ التحقق من رمز CSRF من الطلب """
+        # يجب أن يكون لديك طريقة لتخزين واسترجاع رمز CSRF في الجلسة
+        # هذا مثال افتراضي، في Flask، يمكنك استخدام Flask-WTF أو Flask-Session
+        session_csrf_token = session.get('csrf_token')
+        request_csrf_token = request.form.get('csrf_token') or request.headers.get('X-CSRF-Token')
+
+        if not session_csrf_token or not request_csrf_token:
+            return False
+
+        return SecurityUtils.validate_csrf_token(session_csrf_token, request_csrf_token)
+
+    def _add_security_headers(self, response):
+        """ إضافة رؤوس HTTP الأمنية """
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['Content-Security-Policy'] = SecurityConfig.CSP_POLICY
+        response.headers['Referrer-Policy'] = 'no-referrer-when-downgrade'
+        return response
+
+    def _handle_cors_headers(self, response):
+        """ إضافة رؤوس CORS """
+        origin = request.headers.get('Origin')
+        if origin and origin in SecurityConfig.CORS_ALLOWED_ORIGINS:
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-CSRF-Token'
+            response.headers['Access-Control-Allow-Credentials'] = 'true'
+        return response
+
+    def csrf_protect(self, f):
+        """ Decorator لحماية وظائف العرض من CSRF """
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if 'csrf_token' not in session or \
+               (datetime.now() - session.get('csrf_token_timestamp', datetime.min)) > timedelta(seconds=SecurityConfig.CSRF_TOKEN_LIFETIME_SECONDS):
+                session['csrf_token'] = SecurityUtils.generate_csrf_token()
+                session['csrf_token_timestamp'] = datetime.now()
+            return f(*args, **kwargs)
+        return decorated_function
+
+    def role_required(self, required_role):
+        """ Decorator للتحكم في الوصول المستند إلى الأدوار """
+        def decorator(f):
+            @wraps(f)
+            def decorated_function(*args, **kwargs):
+                # افترض أن دور المستخدم مخزن في الجلسة أو تم جلبه من قاعدة البيانات
+                user_role = session.get('user_role')
+                if user_role != required_role:
+                    abort(403, description="Access Denied: Insufficient role")
+                return f(*args, **kwargs)
+            return decorated_function
+        return decorator
+
+# ==============================================================================
+# 4. مثال على كيفية استخدام محرك الأمان مع Flask
+# ==============================================================================
+
+# هذا الجزء يوضح كيفية دمج محرك الأمان في تطبيق Flask.
+# في تطبيقك الحقيقي، ستقوم باستيراد SecurityEngine واستخدامه.
+
+if __name__ == '__main__':
+    from flask import Flask, request, session, redirect, url_for, render_template_string, flash, abort
+    import logging
+
+    app = Flask(__name__)
+    app.config.from_object(SecurityConfig) # تحميل إعدادات الأمان
+    app.secret_key = SecurityConfig.SECRET_KEY # يجب تعيين هذا لعمل الجلسات
+
+    # تهيئة محرك الأمان
+    security = SecurityEngine(app)
+
+    # إعداد التسجيل
+    logging.basicConfig(level=logging.INFO,
+                        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                        handlers=[
+                            logging.FileHandler("app_security.log"),
+                            logging.StreamHandler()
+                        ])
+    app.logger.info("Security Engine initialized.")
+
+    @app.route('/')
+    @security.csrf_protect # حماية CSRF للصفحة الرئيسية
+    def index():
+        return render_template_string("""
+            <!DOCTYPE html>
+            <html>
+            <head><title>Secure App</title></head>
+            <body>
+                <h1>Welcome to the Secure App!</h1>
+                <p>Your CSRF Token: {{ session.get('csrf_token') }}</p>
+                <form method="POST" action="/submit">
+                    <input type="hidden" name="csrf_token" value="{{ session.get('csrf_token') }}">
+                    <input type="text" name="data" placeholder="Enter data">
+                    <button type="submit">Submit Secure Data</button>
+                </form>
+                <p><a href="/login">Login</a> | <a href="/logout">Logout</a> | <a href="/admin">Admin Panel</a></p>
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <ul class=flashes>
+                        {% for category, message in messages %}
+                            <li class="{{ category }}">{{ message }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endwith %}
+            </body>
+            </html>
+        """, session=session)
+
+    @app.route('/submit', methods=['POST'])
+    def submit_data():
+        # التحقق من CSRF يتم تلقائياً عبر _before_request_hook
+        user_data = request.form.get('data', '')
+        sanitized_data = SecurityUtils.sanitize_html(user_data)
+        app.logger.info(f"Received and sanitized data: {sanitized_data}")
+        flash(f"Data submitted securely: {sanitized_data}", 'success')
+        return redirect(url_for('index'))
+
+    @app.route('/login', methods=['GET', 'POST'])
+    @security.csrf_protect
+    def login():
+        if request.method == 'POST':
+            username = request.form.get('username')
+            password = request.form.get('password')
+            # مثال: تحقق من بيانات الاعتماد
+            if username == 'admin' and SecurityUtils.check_password(password, SecurityUtils.hash_password('securepass')):
+                session['username'] = username
+                session['user_role'] = 'admin'
+                session.permanent = True
+                flash('Logged in successfully!', 'success')
+                return redirect(url_for('index'))
+            else:
+                flash('Invalid credentials.', 'danger')
+        return render_template_string("""
+            <!DOCTYPE html>
+            <html>
+            <head><title>Login</title></head>
+            <body>
+                <h1>Login</h1>
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ session.get('csrf_token') }}">
+                    <input type="text" name="username" placeholder="Username">
+                    <input type="password" name="password" placeholder="Password">
+                    <button type="submit">Login</button>
+                </form>
+                <p><a href="/">Home</a></p>
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <ul class=flashes>
+                        {% for category, message in messages %}
+                            <li class="{{ category }}">{{ message }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endwith %}
+            </body>
+            </html>
+        """, session=session)
+
+    @app.route('/logout')
+    def logout():
+        session.pop('username', None)
+        session.pop('user_role', None)
+        session.pop('csrf_token', None)
+        flash('You have been logged out.', 'info')
+        return redirect(url_for('index'))
+
+    @app.route('/admin')
+    @security.role_required('admin') # يتطلب دور 'admin'
+    def admin_panel():
+        return render_template_string("""
+            <!DOCTYPE html>
+            <html>
+            <head><title>Admin Panel</title></head>
+            <body>
+                <h1>Admin Panel</h1>
+                <p>Welcome, Admin {{ session.get('username') }}!</p>
+                <p>This content is only visible to users with 'admin' role.</p>
+                <p><a href="/">Home</a> | <a href="/logout">Logout</a></p>
+            </body>
+            </html>
+        """, session=session)
+
+    @app.errorhandler(403)
+    def forbidden(e):
+        app.logger.warning(f"Forbidden access attempt: {request.path} - {e.description}")
+        return render_template_string("""
+            <!DOCTYPE html>
+            <html>
+            <head><title>Forbidden</title></head>
+            <body>
+                <h1>403 - Forbidden</h1>
+                <p>{{ e.description }}</p>
+                <p><a href="/">Go Home</a></p>
+            </body>
+            </html>
+        """, e=e), 403
+
+    @app.errorhandler(404)
+    def page_not_found(e):
+        app.logger.warning(f"Page not found: {request.url}")
+        return render_template_string("""
+            <!DOCTYPE html>
+            <html>
+            <head><title>Not Found</title></head>
+            <body>
+                <h1>404 - Page Not Found</h1>
+                <p>The page you are looking for does not exist.</p>
+                <p><a href="/">Go Home</a></p>
+            </body>
+            </html>
+        """), 404
+
+    app.run(debug=True, port=5000)
+
